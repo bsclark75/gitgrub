@@ -11,6 +11,11 @@
     
     <a href="{{ url_for('create_recipe') }}">Create a New Recipe</a> |
     <a href="{{ url_for('logout') }}">Logout</a>
+<form class="search-form" action="{{ url_for('home') }}" method="get">
+    <input class="search-box" type="text" name="q" placeholder="Search by title or tag" value="{{ request.args.get('q', '') }}">
+    <button class="search-button" type="submit">Search</button>
+</form>
+
 
    <div class="recipe-list">
   {% for recipe in recipes %}

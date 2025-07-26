@@ -41,3 +41,45 @@ def test_fork_recipe(client):
     # Fork first recipe
     rv = client.post("/recipes/fork/1", follow_redirects=True)
     assert b"Forked from" in rv.data
+
+def test_search_by_title_and_tag(client):
+    # Register and log in
+    client.post('/register', data={
+        'email': 'searcher@example.com',
+        'password': 'pass123'
+    })
+
+    client.post('/login', data={
+        'email': 'searcher@example.com',
+        'password': 'pass123'
+    })
+
+    # Create recipes
+    client.post('/recipes/create', data={
+        'title': 'Spicy Tofu',
+        'ingredients': 'Tofu, Chili, Garlic',
+        'steps': 'Cook it all together.',
+        'tags': 'vegan,spicy'
+    })
+
+    client.post('/recipes/create', data={
+        'title': 'Sweet Pancakes',
+        'ingredients': 'Flour, Sugar, Eggs',
+        'steps': 'Mix and fry.',
+        'tags': 'breakfast,sweet'
+    })
+
+    # Search by title
+    response = client.get('/', query_string={'q': 'pancakes'})
+    assert b'Sweet Pancakes' in response.data
+    assert b'Spicy Tofu' not in response.data
+
+    # Search by tag
+    response = client.get('/', query_string={'q': 'vegan'})
+    assert b'Spicy Tofu' in response.data
+    assert b'Sweet Pancakes' not in response.data
+
+    # Search for something that doesn’t exist
+    response = client.get('/', query_string={'q': 'pizza'})
+    assert b'Spicy Tofu' not in response.data
+    assert b'Sweet Pancakes' not in response.data

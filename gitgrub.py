@@ -7,17 +7,31 @@ app = Flask(__name__)
 @app.route("/")
 def home():
     user_id = request.cookies.get('YourSessionCookie')
-    if user_id:
-        user = get_user(user_id)
-        if user:
-            conn = sqlite3.connect(DB_PATH)
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM recipes")
-            recipes = cursor.fetchall()
-            conn.close()
-            return render_template('recipe_list.html', user=user, recipes=recipes)
-    return redirect(url_for('login'))
+    if not user_id:
+        return redirect(url_for('login'))
+
+    user = get_user(user_id)
+    if not user:
+        return redirect(url_for('login'))
+
+    query = request.args.get('q', '').strip()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    if query:
+        search = f"%{query.lower()}%"
+        cursor.execute("""
+            SELECT * FROM recipes 
+            WHERE LOWER(title) LIKE ? OR LOWER(tags) LIKE ?
+        """, (search, search))
+    else:
+        cursor.execute("SELECT * FROM recipes")
+
+    recipes = cursor.fetchall()
+    conn.close()
+
+    return render_template('recipe_list.html', user=user, recipes=recipes)
 
 
 @app.route("/login", methods=["GET", "POST"])
