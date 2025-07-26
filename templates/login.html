@@ -3,59 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Login – GitGrub</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f9f9f9;
-            display: flex;
-            height: 100vh;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .login-container {
-            background: white;
-            padding: 2em;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            width: 300px;
-        }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 1em;
-        }
-
-        input[type="email"],
-        input[type="password"] {
-            width: 100%;
-            padding: 0.6em;
-            margin-bottom: 1em;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        button {
-            width: 100%;
-            padding: 0.7em;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        .message {
-            color: red;
-            text-align: center;
-            margin-top: 1em;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="login-container">

@@ -3,19 +3,21 @@
 <html>
 <head>
     <title>Recipe List</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Welcome, {{ user['email'] }}</h1>
+    <h1>All Recipes</h1>
+
     
     <a href="{{ url_for('create_recipe') }}">Create a New Recipe</a> |
     <a href="{{ url_for('logout') }}">Logout</a>
 
-    <ul>
-        {% for recipe in recipes %}
-            <li>
-                <a href="{{ url_for('view_recipe', recipe_id=recipe['id']) }}">{{ recipe['title'] }}</a>
-            </li>
-        {% endfor %}
-    </ul>
+   <div class="recipe-list">
+  {% for recipe in recipes %}
+    <div class="recipe-card">
+      <h3><a href="{{ url_for('view_recipe', recipe_id=recipe['id']) }}">{{ recipe['title'] }}</a></h3>
+    </div>
+  {% endfor %}
+</div>
 </body>
 </html>

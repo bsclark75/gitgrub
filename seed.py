@@ -3,8 +3,8 @@ import os
 import sqlite3
 from custom import DB_PATH
 
-def init_db(connection):
-
+def init_db():
+    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
 
     # Create tables
@@ -61,11 +61,6 @@ def init_db(connection):
 
     connection.commit()
   
-
-def db_make_connection():
-    os.makedirs('db', exist_ok=True)
-    connection = sqlite3.connect(DB_PATH)
-    return connection
 
 def db_close_connection(connection):
       connection.close()

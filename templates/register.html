@@ -3,37 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Register - GitGrub</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 2em; background: #f9f9f9; }
-        .register-box {
-            max-width: 400px;
-            margin: auto;
-            background: #fff;
-            padding: 2em;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .message { color: red; margin-top: 1em; }
-        input {
-            width: 100%;
-            padding: 0.6em;
-            margin-bottom: 1em;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            width: 100%;
-            padding: 0.7em;
-            background-color: #28a745;
-            color: white;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="register-box">

@@ -211,7 +211,7 @@ def logout():
     return response
 
 if __name__ == '__main__':
-    db = db_make_connection()
-    init_db(db)
+
+    init_db()
     app.run(debug=True)
    

@@ -3,63 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>New Recipe - GitGrub</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f8f8f8;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            width: 400px;
-            margin: 50px auto;
-            padding: 20px;
-            background: white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            border-radius: 8px;
-        }
-        h2 {
-            text-align: center;
-            color: #444;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-        label {
-            margin-top: 10px;
-            color: #333;
-        }
-        input[type="text"],
-        textarea {
-            padding: 8px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        textarea {
-            resize: vertical;
-            height: 100px;
-        }
-        input[type="submit"] {
-            margin-top: 20px;
-            padding: 10px;
-            background: #28a745;
-            border: none;
-            color: white;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        input[type="submit"]:hover {
-            background: #218838;
-        }
-        .message {
-            color: red;
-            margin-top: 10px;
-            text-align: center;
-        }
-    </style>
+     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 <div class="container">
