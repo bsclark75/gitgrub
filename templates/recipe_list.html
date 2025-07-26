@@ -1,0 +1,21 @@
+<!-- templates/recipe_list.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recipe List</title>
+</head>
+<body>
+    <h1>Welcome, {{ user['email'] }}</h1>
+    
+    <a href="{{ url_for('create_recipe') }}">Create a New Recipe</a> |
+    <a href="{{ url_for('logout') }}">Logout</a>
+
+    <ul>
+        {% for recipe in recipes %}
+            <li>
+                <a href="{{ url_for('recipe_detail', recipe_id=recipe['id']) }}">{{ recipe['title'] }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

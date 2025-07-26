@@ -8,22 +8,21 @@ app = Flask(__name__)
 def home():
     user_id = request.cookies.get('YourSessionCookie')
     if user_id:
-        user = db.get(user_id)
+        user = get_user(user_id)
         if user:
-            # Success!
-            return render_template('welcome.html', user=user)
-        else:
-            return redirect(url_for('login'))
-    else:
-        return redirect(url_for('login'))
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM recipes")
+            recipes = cursor.fetchall()
+            conn.close()
+            return render_template('recipe_list.html', user=user, recipes=recipes)
+    return redirect(url_for('login'))
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        # You should really validate that these fields
-        # are provided, rather than displaying an ugly
-        # error message, but for the sake of a simple
-        # example we'll just assume they are provided
 
         email = request.form.get('email')
         password = request.form.get('password')
@@ -31,13 +30,10 @@ def login():
         user = find_by_name_and_password(email, password)
 
         if not user:
-            # Again, throwing an error is not a user-friendly
-            # way of handling this, but this is just an example
             raise ValueError("Invalid username or password supplied")
 
-        # Note we don't *return* the response immediately
-        response = redirect(url_for("do_that"))
-        response.set_cookie('YourSessionCookie', user.id)
+        response = redirect(url_for("home"))
+        response.set_cookie('YourSessionCookie', str(user["id"]))
         return response
     else:
         response = render_template('login.html')
@@ -52,10 +48,8 @@ def register():
         if not email or not password:
             return render_template('register.html', message="All fields are required.")
 
-        # Hash the password
         password_hash = hashlib.sha256(password.encode()).hexdigest()
 
-        # Check if user already exists
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
@@ -72,6 +66,104 @@ def register():
 
     return render_template('register.html')
  
+@app.route('/recipes/create', methods=['GET', 'POST'])
+def create_recipe():
+    if request.method == 'POST':
+        title = request.form.get('title')
+        ingredients = request.form.get('ingredients')
+        steps = request.form.get('steps')
+        tags = request.form.get('tags')
+        user_id = request.cookies.get("YourSessionCookie")
+
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO recipes (title, ingredients, steps, tags, user_id) VALUES (?, ?, ?, ?, ?)", (title, ingredients, steps, tags, user_id))
+        recipe_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        return redirect(url_for('recipe_detail', recipe_id=recipe_id))
+    return render_template('new_recipe.html')
+
+@app.route('/recipes/<int:recipe_id>/edit', methods=['GET', 'POST'])
+def edit_recipe(recipe_id):
+    user_id = request.cookies.get("YourSessionCookie")
+    user = get_user(user_id)
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM recipes WHERE id = ?", (recipe_id,))
+    recipe = cursor.fetchone()
+
+    if not recipe:
+        conn.close()
+        return "Recipe not found", 404
+
+    if str(recipe["user_id"]) != user_id:
+        conn.close()
+        return "Unauthorized", 403
+
+    if request.method == 'POST':
+        title = request.form.get('title')
+        ingredients = request.form.get('ingredients')
+        steps = request.form.get('steps')
+        tags = request.form.get('tags')
+
+        cursor.execute(
+            "UPDATE recipes SET title = ?, ingredients = ?, steps = ?, tags = ? WHERE id = ?",
+            (title, ingredients, steps, tags, recipe_id)
+        )
+        conn.commit()
+        conn.close()
+        return redirect(url_for('recipe_detail', recipe_id=recipe_id))
+
+    conn.close()
+    return render_template('edit_recipe.html', recipe=recipe, user=user)
+
+@app.route('/recipes/<int:recipe_id>')
+def recipe_detail(recipe_id):
+    user_id = request.cookies.get("YourSessionCookie")
+    user = get_user(user_id)
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM recipes WHERE id = ?", (recipe_id,))
+    recipe = cursor.fetchone()
+    conn.close()
+
+    if not recipe:
+        return "Recipe not found", 404
+
+    return render_template('recipe_detail.html', recipe=recipe, user=user)
+
+@app.route('/recipes/<int:recipe_id>/delete', methods=['POST'])
+def delete_recipe(recipe_id):
+    user_id = request.cookies.get("YourSessionCookie")
+    user = get_user(user_id)
+
+    if not user:
+        return redirect(url_for('login'))
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    # Check if the recipe belongs to the user
+    cursor.execute("SELECT user_id FROM recipes WHERE id = ?", (recipe_id,))
+    row = cursor.fetchone()
+
+    if row and str(row[0]) == str(user['id']):
+        cursor.execute("DELETE FROM recipes WHERE id = ?", (recipe_id,))
+        conn.commit()
+
+    conn.close()
+    return redirect(url_for('home'))
+
+
+@app.route('/logout')
+def logout():
+    response = redirect(url_for('login'))
+    response.delete_cookie('YourSessionCookie')
+    return response
 
 if __name__ == '__main__':
     db = db_make_connection()

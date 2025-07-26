@@ -89,3 +89,19 @@ def find_by_name_and_password(email, password):
         }
     else:
         return None
+
+def get_user(user_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id FROM users WHERE id = ?", (user_id))
+    user = cursor.fetchone()
+
+    conn.close()
+
+    if user:
+        return {
+            "id": user[0]
+        }
+    else:
+        return None
