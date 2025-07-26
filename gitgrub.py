@@ -81,7 +81,7 @@ def create_recipe():
         recipe_id = cursor.lastrowid
         conn.commit()
         conn.close()
-        return redirect(url_for('recipe_detail', recipe_id=recipe_id))
+        return redirect(url_for('view_recipe', recipe_id=recipe_id))
     return render_template('new_recipe.html')
 
 @app.route('/recipes/<int:recipe_id>/edit', methods=['GET', 'POST'])
@@ -115,26 +115,35 @@ def edit_recipe(recipe_id):
         )
         conn.commit()
         conn.close()
-        return redirect(url_for('recipe_detail', recipe_id=recipe_id))
+        return redirect(url_for('view_recipe', recipe_id=recipe_id))
 
     conn.close()
     return render_template('edit_recipe.html', recipe=recipe, user=user)
 
 @app.route('/recipes/<int:recipe_id>')
-def recipe_detail(recipe_id):
+def view_recipe(recipe_id):
     user_id = request.cookies.get("YourSessionCookie")
     user = get_user(user_id)
+
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
+
+    # Get the main recipe
     cursor.execute("SELECT * FROM recipes WHERE id = ?", (recipe_id,))
     recipe = cursor.fetchone()
-    conn.close()
 
     if not recipe:
+        conn.close()
         return "Recipe not found", 404
 
-    return render_template('recipe_detail.html', recipe=recipe, user=user)
+    # Get first-generation forks
+    cursor.execute("SELECT * FROM recipes WHERE forked_from = ?", (recipe_id,))
+    forks = cursor.fetchall()
+
+    conn.close()
+
+    return render_template('recipe_detail.html', recipe=recipe, user=user, forks=forks)
 
 @app.route('/recipes/<int:recipe_id>/delete', methods=['POST'])
 def delete_recipe(recipe_id):
@@ -158,6 +167,42 @@ def delete_recipe(recipe_id):
     conn.close()
     return redirect(url_for('home'))
 
+@app.route('/recipes/fork/<int:recipe_id>', methods=['POST'])
+def fork_recipe(recipe_id):
+    user_id = request.cookies.get("YourSessionCookie")
+    user = get_user(user_id)
+    if not user:
+        return redirect(url_for('login'))
+
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    # Get the original recipe
+    cursor.execute("SELECT * FROM recipes WHERE id = ?", (recipe_id,))
+    original = cursor.fetchone()
+    if not original:
+        conn.close()
+        return "Recipe not found", 404
+
+    # Fork it for the current user
+    cursor.execute("""
+        INSERT INTO recipes (title, ingredients, steps, tags, user_id, forked_from)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (
+        original['title'],
+        original['ingredients'],
+        original['steps'],
+        original['tags'],
+        user['id'],
+        original['id']
+    ))
+
+    new_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('view_recipe', recipe_id=new_id))
 
 @app.route('/logout')
 def logout():
