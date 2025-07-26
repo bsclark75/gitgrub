@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - GitGrub</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 2em; background: #f9f9f9; }
+        .register-box {
+            max-width: 400px;
+            margin: auto;
+            background: #fff;
+            padding: 2em;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .message { color: red; margin-top: 1em; }
+        input {
+            width: 100%;
+            padding: 0.6em;
+            margin-bottom: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 0.7em;
+            background-color: #28a745;
+            color: white;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-box">
+        <h1>Register</h1>
+        <form method="post" action="/register">
+            <label for="email">Email</label><br>
+            <input type="email" id="email" name="email" required><br>
+
+            <label for="password">Password</label><br>
+            <input type="password" id="password" name="password" required><br>
+
+            <button type="submit">Create Account</button>
+        </form>
+
+        {% if message %}
+        <div class="message">{{ message }}</div>
+        {% endif %}
+    </div>
+</body>
+</html>

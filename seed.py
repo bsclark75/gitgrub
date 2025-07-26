@@ -3,11 +3,8 @@ import os
 import sqlite3
 from custom import DB_PATH
 
-def init_db():
+def init_db(connection):
 
-
-    os.makedirs('db', exist_ok=True)
-    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
 
     # Create tables
@@ -63,4 +60,32 @@ def init_db():
         print("⚠️ Seed already exists, skipping.")
 
     connection.commit()
-    connection.close()
+  
+
+def db_make_connection():
+    os.makedirs('db', exist_ok=True)
+    connection = sqlite3.connect(DB_PATH)
+    return connection
+
+def db_close_connection(connection):
+      connection.close()
+
+def find_by_name_and_password(email, password):
+    """Find a user by email and password. Password is hashed before comparison."""
+    password_hash = hashlib.sha256(password.encode()).hexdigest()
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, email FROM users WHERE email = ? AND password = ?", (email, password_hash))
+    user = cursor.fetchone()
+
+    conn.close()
+
+    if user:
+        return {
+            "id": user[0],
+            "email": user[1]
+        }
+    else:
+        return None
