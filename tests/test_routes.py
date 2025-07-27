@@ -1,5 +1,4 @@
 import hashlib
-from seed import DB_PATH
 
 def login_helper(client, email="test@example.com", password="password123"):
     # Use plain form data to log in

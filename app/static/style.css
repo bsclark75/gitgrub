@@ -190,3 +190,69 @@ input[type="submit"]:hover {
 .search-button:hover {
     background-color: #45a049;
 }
+
+/* Auth Forms (Login & Registration) */
+.auth-form {
+    width: 400px;
+    margin: 60px auto;
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.auth-form h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.auth-form label {
+    margin-top: 12px;
+    color: #444;
+    font-weight: bold;
+}
+
+.auth-form input[type="email"],
+.auth-form input[type="password"] {
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.auth-form input[type="submit"] {
+    margin-top: 20px;
+    padding: 10px;
+    background: #007bff;
+    border: none;
+    color: white;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.auth-form input[type="submit"]:hover {
+    background: #0056b3;
+}
+
+.auth-message {
+    margin-top: 15px;
+    color: red;
+    text-align: center;
+}
+
+.auth-switch {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 0.9em;
+}
+
+.auth-switch a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}

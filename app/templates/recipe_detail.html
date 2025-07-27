@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ recipe['title'] }} – GitGrub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container recipe-detail">
+        <h2>{{ recipe['title'] }}</h2>
+
+        <div class="recipe-section">
+            <h4>Ingredients:</h4>
+            <p>{{ recipe['ingredients'] }}</p>
+        </div>
+
+        <div class="recipe-section">
+            <h4>Instructions:</h4>
+            <p>{{ recipe['steps'] }}</p>
+        </div>
+
+        {% if recipe['tags'] %}
+        <div class="tags">
+            <strong>Tags:</strong> {{ recipe['tags'] }}
+        </div>
+        {% endif %}
+
+        {% if recipe.forked_from %}
+        <p class="fork-info">
+            Forked from <a href="{{ url_for('recipe.view_recipe', recipe_id=recipe.forked_from) }}">original recipe</a>
+        </p>
+        {% endif %}
+
+        <div class="actions">
+            {% if user and user['id'] == recipe['user_id'] %}
+                <a class="button" href="{{ url_for('recipe.edit_recipe', recipe_id=recipe['id']) }}">✏️ Edit</a>
+                <form method="post" action="{{ url_for('recipe.delete_recipe', recipe_id=recipe['id']) }}" style="display:inline;">
+                    <button type="submit" class="button delete">🗑 Delete</button>
+                </form>
+            {% endif %}
+            <form method="post" action="{{ url_for('recipe.fork_recipe', recipe_id=recipe['id']) }}" style="display:inline;">
+                <button type="submit" class="button fork">🍴 Fork</button>
+            </form>
+        </div>
+
+        {% if forks %}
+        <div class="forks-section">
+            <h4>Forks</h4>
+            <ul>
+                {% for fork in forks %}
+                <li><a href="{{ url_for('recipe.view_recipe', recipe_id=fork['id']) }}">{{ fork['title'] }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <a href="{{ url_for('recipe.home') }}" class="back-link">⬅ Back to recipe list</a>
+    </div>
+</body>
+</html>

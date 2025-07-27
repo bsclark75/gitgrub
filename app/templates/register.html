@@ -6,9 +6,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="register-box">
+    <div class="auth-form">
         <h1>Register</h1>
-        <form method="post" action="/register">
+        <form method="post" action="{{ url_for('auth.register') }}">
             <label for="email">Email</label><br>
             <input type="email" id="email" name="email" required><br>
 

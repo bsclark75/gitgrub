@@ -6,15 +6,18 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="login-container">
+    <div class="auth-form">
         <h2>GitGrub Login</h2>
-        <form method="POST" action="/login">
+        <form method="POST" action="{{ url_for('auth.login') }}">
             <input type="email" name="email" placeholder="Email" required>
             <input type="password" name="password" placeholder="Password" required>
             <button type="submit">Log In</button>
         </form>
-        <a href="/register">New User</a>
+        <a href="{{ url_for('auth.register') }}">New User</a>
 
         {% if message %}
-        <div class="message">{{ message }}</div>
+            <div class="message">{{ message }}</div>
         {% endif %}
+    </div>
+</body>
+</html>

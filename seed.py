@@ -1,5 +1,5 @@
-import hashlib
 import os
+import hashlib
 import sqlite3
 from custom import DB_PATH
 
@@ -7,40 +7,68 @@ def init_db():
     connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
 
-    # Create tables
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
-        )
-    ''')
+    # Check if we're in test mode (based on environment variable)
+    is_testing = os.getenv('FLASK_ENV') == 'testing' or os.getenv('TESTING') == '1'
 
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS recipes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            ingredients TEXT,
-            steps TEXT,
-            notes TEXT,
-            tags TEXT,
-            user_id INTEGER,
-            forked_from INTEGER,
-            FOREIGN KEY(user_id) REFERENCES users(id),
-            FOREIGN KEY(forked_from) REFERENCES recipes(id)
-        )
-    ''')
+    if is_testing:
+        # Drop tables to ensure fresh state
+        cursor.execute('DROP TABLE IF EXISTS recipes')
+        cursor.execute('DROP TABLE IF EXISTS users')
+    else:
+        # In prod, don't drop tables — just create if not exist
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL
+            )
+        ''')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS recipes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                ingredients TEXT,
+                steps TEXT,
+                notes TEXT,
+                tags TEXT,
+                user_id INTEGER,
+                forked_from INTEGER,
+                FOREIGN KEY(user_id) REFERENCES users(id),
+                FOREIGN KEY(forked_from) REFERENCES recipes(id)
+            )
+        ''')
 
-    # Seed user if not exists
-    user_email = 'test@example.com'
-    password_hash = hashlib.sha256('password123'.encode()).hexdigest()
+    # If in testing or if users table just created, seed data
+    if is_testing or not table_has_user(cursor, 'test@example.com'):
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL
+            )
+        ''')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS recipes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                ingredients TEXT,
+                steps TEXT,
+                notes TEXT,
+                tags TEXT,
+                user_id INTEGER,
+                forked_from INTEGER,
+                FOREIGN KEY(user_id) REFERENCES users(id),
+                FOREIGN KEY(forked_from) REFERENCES recipes(id)
+            )
+        ''')
 
-    cursor.execute('SELECT * FROM users WHERE email = ?', (user_email,))
-    if cursor.fetchone() is None:
-        cursor.execute('INSERT INTO users (email, password) VALUES (?, ?)', (user_email, password_hash))
-        user_id = cursor.lastrowid
+        # Seed user and recipes
+        user_email = 'test@example.com'
+        password_hash = hashlib.sha256('password123'.encode()).hexdigest()
 
-        # Seed 5 recipes for the user
+        cursor.execute('INSERT OR IGNORE INTO users (email, password) VALUES (?, ?)', (user_email, password_hash))
+        user_id = cursor.lastrowid or cursor.execute('SELECT id FROM users WHERE email=?', (user_email,)).fetchone()[0]
+
         recipes = [
             ("Spaghetti Bolognese", "beef, pasta, tomato", "cook beef, boil pasta, mix", "classic favorite", "italian"),
             ("Grilled Cheese", "bread, cheese, butter", "butter bread, grill with cheese", "", "lunch,quick"),
@@ -56,47 +84,10 @@ def init_db():
             ''', (title, ingredients, steps, notes, tags, user_id))
 
         print("✅ Seeded 1 user and 5 recipes.")
-    else:
-        print("⚠️ Seed already exists, skipping.")
 
     connection.commit()
-  
 
-def db_close_connection(connection):
-      connection.close()
-
-def find_by_name_and_password(email, password):
-    """Find a user by email and password. Password is hashed before comparison."""
-    password_hash = hashlib.sha256(password.encode()).hexdigest()
-
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT id, email FROM users WHERE email = ? AND password = ?", (email, password_hash))
-    user = cursor.fetchone()
-
-    conn.close()
-
-    if user:
-        return {
-            "id": user[0],
-            "email": user[1]
-        }
-    else:
-        return None
-
-def get_user(user_id):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT id FROM users WHERE id = ?", (user_id))
-    user = cursor.fetchone()
-
-    conn.close()
-
-    if user:
-        return {
-            "id": user[0]
-        }
-    else:
-        return None
+def table_has_user(cursor, email):
+    cursor.execute('SELECT id FROM users WHERE email = ?', (email,))
+    return cursor.fetchone() is not None
+ 

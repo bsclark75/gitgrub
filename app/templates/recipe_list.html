@@ -1,0 +1,27 @@
+<!-- templates/recipe_list.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recipe List</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>All Recipes</h1>
+
+    <a href="{{ url_for('recipe.create_recipe') }}">Create a New Recipe</a> |
+    <a href="{{ url_for('auth.logout') }}">Logout</a>
+
+    <form class="search-form" action="{{ url_for('recipe.home') }}" method="get">
+        <input class="search-box" type="text" name="q" placeholder="Search by title or tag" value="{{ request.args.get('q', '') }}">
+        <button class="search-button" type="submit">Search</button>
+    </form>
+
+    <div class="recipe-list">
+        {% for recipe in recipes %}
+            <div class="recipe-card">
+                <h3><a href="{{ url_for('recipe.view_recipe', recipe_id=recipe['id']) }}">{{ recipe['title'] }}</a></h3>
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

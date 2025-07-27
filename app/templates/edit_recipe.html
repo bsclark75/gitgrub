@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Recipe - GitGrub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Edit Recipe</h2>
+
+        <form method="post" class="form-box">
+            <label for="title">Title:</label><br>
+            <input type="text" id="title" name="title" value="{{ recipe['title'] }}" required><br><br>
+
+            <label for="ingredients">Ingredients:</label><br>
+            <textarea id="ingredients" name="ingredients" rows="4">{{ recipe['ingredients'] }}</textarea><br><br>
+
+            <label for="steps">Steps:</label><br>
+            <textarea id="steps" name="steps" rows="4">{{ recipe['steps'] }}</textarea><br><br>
+
+            <label for="tags">Tags (comma separated):</label><br>
+            <input type="text" id="tags" name="tags" value="{{ recipe['tags'] }}"><br><br>
+
+            <button type="submit" class="btn">Update Recipe</button>
+        </form>
+
+        <p><a href="{{ url_for('recipe.view_recipe', recipe_id=recipe['id']) }}">⬅ Back to Recipe</a></p>
+    </div>
+</body>
+</html>
