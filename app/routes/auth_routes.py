@@ -1,5 +1,7 @@
 from flask import Blueprint, request, redirect, url_for, render_template
-from app.services.user_service import find_user_by_credentials, create_user
+from ..services.user_service import find_user_by_credentials, create_user
+
+#from app.services.user_service import find_user_by_credentials, create_user
 
 auth_bp = Blueprint("auth", __name__)
 

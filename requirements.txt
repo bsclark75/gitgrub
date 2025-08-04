@@ -3,3 +3,4 @@ flask_sqlalchemy
 flask_bcrypt
 flask_login
 pytest
+python-dotenv

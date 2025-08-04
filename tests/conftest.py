@@ -1,26 +1,28 @@
 import os
+os.environ["DB_PATH"] = "db/test_gitgrub.db"
+os.environ["FLASK_ENV"] = "testing"
+os.environ["TESTING"] = "1"
 import sys
-import pytest
-import sqlite3
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+import pytest
 from app import create_app
-from seed import init_db
+from seed import init_db, DB_PATH
 
-@pytest.fixture
-def client(tmp_path):
-    test_db = tmp_path / "test.db"
-    os.environ['DB_PATH'] = str(test_db)
+@pytest.fixture(scope="session", autouse=True)
+def setup_test_db():
+    init_db()  # This will create & seed db/test_gitgrub.db
 
-    app = create_app()  # ✅ FIX: CALL the factory
+@pytest.fixture(scope="function")
+def client():
+    # Ensure fresh DB
+    if os.path.exists(DB_PATH):
+        os.remove(DB_PATH)
+    init_db()
+
+    app = create_app()
     app.config['TESTING'] = True
-    app.config['WTF_CSRF_ENABLED'] = False
-
-    os.environ['FLASK_ENV'] = 'testing'
-    os.environ['TESTING'] = '1'
-
-    init_db()  # initialize schema & seed
 
     with app.test_client() as client:
         yield client
