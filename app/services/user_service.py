@@ -36,7 +36,7 @@ def get_user(id):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    cursor.execute("SELECT id FROM users WHERE id = ?", (id))
+    cursor.execute("SELECT id FROM users WHERE id = ?", (id,))
     user = cursor.fetchone()
 
     conn.close()
