@@ -23,4 +23,21 @@ else
     pip install flask pytest
 fi
 
-echo "✅ Setup complete. Virtual environment activated."
+# Make project root importable
+export PYTHONPATH="$(pwd)"
+
+# Ensure db directory exists
+mkdir -p db
+
+# Always start with a fresh DB
+if [ -f db/gitgrub.sqlite3 ]; then
+  echo "🗑️  Removing old database..."
+  rm db/gitgrub.sqlite3
+fi
+
+# Run seed to create schema + seed data
+echo "🌱 Seeding database..."
+python seed.py
+
+echo "✅ Setup complete. Run 'flask run' to start the app."
+

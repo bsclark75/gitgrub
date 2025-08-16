@@ -1,22 +1,25 @@
 # seed.py
-
 import os
 import sqlite3
 import hashlib
+import secrets
+from pathlib import Path
 from custom import DB_PATH
 
 def init_db():
-    is_testing = os.getenv('FLASK_ENV') == 'testing' or os.getenv('TESTING') == '1'
+    # Ensure db folder exists
+    Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
 
     connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
 
-    if is_testing:
-        cursor.execute('DROP TABLE IF EXISTS recipes')
-        cursor.execute('DROP TABLE IF EXISTS users')
+    # Always drop old tables (since setup.sh wipes db file, this is just safety)
+    cursor.execute('DROP TABLE IF EXISTS recipes')
+    cursor.execute('DROP TABLE IF EXISTS users')
 
+    # Recreate schema
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
+        CREATE TABLE users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL
@@ -24,7 +27,7 @@ def init_db():
     ''')
 
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS recipes (
+        CREATE TABLE recipes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
             ingredients TEXT,
@@ -41,25 +44,32 @@ def init_db():
     connection.commit()
     connection.close()
 
-    if is_testing or os.getenv('SEED') == '1':
-        seed_db()
+    seed_db()  # always seed
 
 def seed_db():
     connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
 
-    user_email = 'test@example.com'
-    password_hash = hashlib.sha256('password123'.encode()).hexdigest()
+    # Get admin credentials from env (fallbacks safe for open source)
+    user_email = os.getenv("ADMIN_EMAIL", "admin@example.com")
+    admin_password = os.getenv("ADMIN_PASSWORD")
 
-    cursor.execute('SELECT id FROM users WHERE email = ?', (user_email,))
-    user = cursor.fetchone()
+    if not admin_password:
+        admin_password = secrets.token_urlsafe(12)  # generate safe random pass
+        print("\n⚠️ No ADMIN_PASSWORD set in .env, generated one-time password:")
+        print(f"   Email:    {user_email}")
+        print(f"   Password: {admin_password}\n")
 
-    if not user:
-        cursor.execute('INSERT INTO users (email, password) VALUES (?, ?)', (user_email, password_hash))
-        user_id = cursor.lastrowid
-    else:
-        user_id = user[0]
+    password_hash = hashlib.sha256(admin_password.encode()).hexdigest()
 
+    # Insert admin user
+    cursor.execute(
+        'INSERT INTO users (email, password) VALUES (?, ?)',
+        (user_email, password_hash)
+    )
+    user_id = cursor.lastrowid
+
+    # Insert sample recipes
     recipes = [
         ("Spaghetti Bolognese", "beef, pasta, tomato", "cook beef, boil pasta, mix", "classic favorite", "italian"),
         ("Grilled Cheese", "bread, cheese, butter", "butter bread, grill with cheese", "", "lunch,quick"),
@@ -68,13 +78,15 @@ def seed_db():
         ("Chili", "beans, beef, spices", "slow cook everything", "good for cold days", "spicy,winter"),
     ]
 
-    for title, ingredients, steps, notes, tags in recipes:
-        cursor.execute('''
-            INSERT INTO recipes (title, ingredients, steps, notes, tags, user_id)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (title, ingredients, steps, notes, tags, user_id))
+    cursor.executemany('''
+        INSERT INTO recipes (title, ingredients, steps, notes, tags, user_id)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', [(t, i, s, n, tags, user_id) for (t, i, s, n, tags) in recipes])
 
     connection.commit()
     connection.close()
 
-    print("✅ Seeded 1 user and 5 recipes.")
+    print("✅ Seeded 1 admin user and 5 recipes.")
+
+if __name__ == "__main__":
+    init_db()
