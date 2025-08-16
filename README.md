@@ -31,7 +31,7 @@ cd gitgrub
 Copy the example `.env` file and edit as needed (at minimum, update `SECRET_KEY`):
 
 ```bash
-cp .env.example .env
+cp env.example .env
 ```
 
 - `SECRET_KEY` → generate with  
